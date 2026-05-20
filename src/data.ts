@@ -1,12 +1,44 @@
-export const sample = {
+export type ItemStatus = "backlog" | "active" | "blocked" | "ready" | "done";
+
+export type WorkItem = {
+  id: string;
+  title: string;
+  category: string;
+  owner: string;
+  status: ItemStatus;
+  priority: number;
+  effort: number;
+  friction: number;
+  value: number;
+  due: string;
+  notes: string;
+};
+
+export type QualityCheck = {
+  id: string;
+  label: string;
+  passed: boolean;
+  weight: number;
+};
+
+export const sample: {
+  repoName: string;
+  title: string;
+  subtitle: string;
+  serviceLine: string;
+  description: string;
+  repositoryUrl: string;
+  liveDemoUrl: string;
+  theme: { accent: string; accent2: string; ink: string; soft: string; warm: string };
+  items: WorkItem[];
+  checks: QualityCheck[];
+  deliverables: string[];
+} = {
   "repoName": "foxhen-safe-bounty-scope-checker",
   "title": "Safe Bounty Scope Checker",
-  "subtitle": "Authorization-first bounty planning",
+  "subtitle": "scope safety matrix",
   "serviceLine": "Security research prep",
-  "heroTitle": "Check bounty scope before touching a target.",
-  "heroCopy": "A fictional bounty planning tool that highlights authorized assets, prohibited actions, payout clarity, and approval gates before any research begins.",
-  "primaryAction": "Check scope",
-  "secondaryAction": "Review no-touch list",
+  "description": "Plan security research by mapping allowed assets, no-touch actions, payout clarity, and approval gates.",
   "repositoryUrl": "https://github.com/foxandhenllc/foxhen-safe-bounty-scope-checker",
   "liveDemoUrl": "https://foxhen-safe-bounty-scope-checker.vercel.app",
   "theme": {
@@ -14,115 +46,124 @@ export const sample = {
     "accent2": "#ffbf69",
     "ink": "#050b17",
     "soft": "#edf3ff",
-    "warm": "#fff2df",
-    "surface": "#fffaf4",
-    "muted": "#5c667a",
-    "border": "rgba(7, 18, 31, 0.12)"
+    "warm": "#fff2df"
   },
-  "metrics": [
+  "items": [
     {
-      "label": "Allowed assets",
-      "value": "14",
-      "note": "sample scope"
-    },
-    {
-      "label": "No-touch rules",
-      "value": "9",
-      "note": "must obey"
-    },
-    {
-      "label": "Payout clarity",
-      "value": "78%",
-      "note": "needs review"
-    }
-  ],
-  "stages": [
-    {
-      "label": "Program",
-      "detail": "Record payer, payout terms, disclosure channel, and written authorization.",
-      "status": "ready",
-      "owner": "Research",
-      "index": 1
-    },
-    {
-      "label": "Scope",
-      "detail": "Separate allowed assets from out-of-scope domains and sensitive actions.",
-      "status": "active",
-      "owner": "Studio",
-      "index": 2
-    },
-    {
-      "label": "Safety",
-      "detail": "Flag social engineering, destructive testing, deposits, and blockchain interactions.",
-      "status": "waiting",
-      "owner": "Chris",
-      "index": 3
-    },
-    {
-      "label": "Plan",
-      "detail": "Package a safe test checklist without running any exploit activity.",
-      "status": "queued",
-      "owner": "Ops",
-      "index": 4
-    }
-  ],
-  "workItems": [
-    {
+      "id": "saf-1",
       "title": "Asset table",
-      "detail": "Mark wildcard and app-scope boundaries",
-      "status": "ready"
+      "category": "Intake",
+      "owner": "Chris",
+      "status": "active",
+      "priority": 5,
+      "effort": 2,
+      "friction": 1,
+      "value": 5,
+      "due": "Today",
+      "notes": "Sample scope safety matrix work item for security research prep."
     },
     {
-      "title": "Prohibited list",
-      "detail": "Promote no-touch actions to the top",
-      "status": "active"
+      "id": "saf-2",
+      "title": "No-touch rule",
+      "category": "Build",
+      "owner": "Fox & Hen",
+      "status": "backlog",
+      "priority": 4,
+      "effort": 4,
+      "friction": 2,
+      "value": 4,
+      "due": "24h",
+      "notes": "Sample scope safety matrix work item for security research prep."
     },
     {
-      "title": "Payout rules",
-      "detail": "Waiting on program wording",
-      "status": "waiting"
+      "id": "saf-3",
+      "title": "Payout rule",
+      "category": "Review",
+      "owner": "Buyer",
+      "status": "blocked",
+      "priority": 3,
+      "effort": 3,
+      "friction": 4,
+      "value": 4,
+      "due": "48h",
+      "notes": "Sample scope safety matrix work item for security research prep."
     },
     {
+      "id": "saf-4",
+      "title": "Disclosure path",
+      "category": "Export",
+      "owner": "Automation",
+      "status": "ready",
+      "priority": 4,
+      "effort": 2,
+      "friction": 2,
+      "value": 3,
+      "due": "This week",
+      "notes": "Sample scope safety matrix work item for security research prep."
+    },
+    {
+      "id": "saf-5",
+      "title": "Approval gate",
+      "category": "Intake",
+      "owner": "QA",
+      "status": "backlog",
+      "priority": 2,
+      "effort": 1,
+      "friction": 1,
+      "value": 3,
+      "due": "Waiting",
+      "notes": "Sample scope safety matrix work item for security research prep."
+    },
+    {
+      "id": "saf-6",
       "title": "Research memo",
-      "detail": "Queued for approval gate",
-      "status": "queued"
+      "category": "Build",
+      "owner": "Chris",
+      "status": "done",
+      "priority": 5,
+      "effort": 5,
+      "friction": 3,
+      "value": 5,
+      "due": "Next pass",
+      "notes": "Sample scope safety matrix work item for security research prep."
+    }
+  ],
+  "checks": [
+    {
+      "id": "payer",
+      "label": "Payer or owner is clear",
+      "passed": true,
+      "weight": 18
+    },
+    {
+      "id": "deliverable",
+      "label": "Deliverable has acceptance criteria",
+      "passed": true,
+      "weight": 18
+    },
+    {
+      "id": "friction",
+      "label": "Account/access friction is documented",
+      "passed": false,
+      "weight": 14
+    },
+    {
+      "id": "handoff",
+      "label": "Handoff package is generated",
+      "passed": false,
+      "weight": 16
+    },
+    {
+      "id": "reuse",
+      "label": "Repeatable pipeline note exists",
+      "passed": true,
+      "weight": 12
     }
   ],
   "deliverables": [
-    {
-      "title": "Scope matrix",
-      "detail": "Allowed, restricted, and forbidden targets in one view."
-    },
-    {
-      "title": "Safety checklist",
-      "detail": "No-contact, no-deposit, no-transaction boundaries made explicit."
-    },
-    {
-      "title": "Approval memo",
-      "detail": "What Chris must approve before any external action."
-    }
-  ],
-  "timeline": [
-    {
-      "time": "0-1 hr",
-      "detail": "Read official program terms"
-    },
-    {
-      "time": "1-2 hrs",
-      "detail": "Map scope and payout clarity"
-    },
-    {
-      "time": "2-3 hrs",
-      "detail": "Prepare safe research checklist"
-    }
-  ],
-  "proof": [
-    "Preserves the Web3/security safe-harbor rules only when relevant.",
-    "Shows careful authorization discipline for bounty work.",
-    "Does not contact projects or test live targets."
+    "Ranked board",
+    "Editable item inspector",
+    "Readiness checklist",
+    "Exportable handoff report"
   ]
-} as const;
-
-export type StageStatus = "ready" | "active" | "waiting" | "queued";
-export type DemoStage = (typeof sample.stages)[number];
-export type WorkItem = (typeof sample.workItems)[number];
+};

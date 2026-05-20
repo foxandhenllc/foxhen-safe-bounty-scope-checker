@@ -1,33 +1,29 @@
 import { useMemo, useState, type CSSProperties } from "react";
-import { sample, type DemoStage, type StageStatus, type WorkItem } from "./data";
+import { sample, type ItemStatus, type QualityCheck, type WorkItem } from "./data";
 import "./styles.css";
 
-const statusLabels: Record<StageStatus, string> = {
+const statusOrder: ItemStatus[] = ["backlog", "active", "blocked", "ready", "done"];
+const statusLabels: Record<ItemStatus, string> = {
+  backlog: "Backlog",
+  active: "Active",
+  blocked: "Blocked",
   ready: "Ready",
-  active: "In progress",
-  waiting: "Needs approval",
-  queued: "Queued",
+  done: "Done",
 };
 
-const statusClass: Record<StageStatus, string> = {
-  ready: "status-ready",
-  active: "status-active",
-  waiting: "status-waiting",
-  queued: "status-queued",
-};
+function scoreItem(item: WorkItem) {
+  const statusBoost = { backlog: 0, active: 10, blocked: -12, ready: 18, done: 8 }[item.status];
+  return item.priority * 18 + item.value * 14 - item.friction * 9 - item.effort * 4 + statusBoost;
+}
 
 function App() {
-  const [activeStage, setActiveStage] = useState(1);
-  const [deliverySpeed, setDeliverySpeed] = useState(2);
-  const [checkedItems, setCheckedItems] = useState(() => new Set(["scope", "qa"]));
-
-  const currentStage = sample.stages[activeStage - 1];
-  const activeWork = sample.workItems.find((item) => item.status === currentStage.status) ?? sample.workItems[0];
-  const readiness = useMemo(() => {
-    const base = 58 + deliverySpeed * 7 + checkedItems.size * 6;
-    const waitingPenalty = sample.workItems.filter((item) => item.status === "waiting").length * 3;
-    return Math.min(98, Math.max(42, base - waitingPenalty));
-  }, [checkedItems, deliverySpeed]);
+  const [items, setItems] = useState<WorkItem[]>(sample.items);
+  const [checks, setChecks] = useState<QualityCheck[]>(sample.checks);
+  const [selectedId, setSelectedId] = useState(sample.items[0]?.id ?? "");
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<ItemStatus | "all">("all");
+  const [sortMode, setSortMode] = useState<"score" | "effort" | "friction">("score");
+  const [report, setReport] = useState("");
 
   const appStyle = {
     "--accent": sample.theme.accent,
@@ -35,254 +31,220 @@ function App() {
     "--ink": sample.theme.ink,
     "--soft": sample.theme.soft,
     "--warm": sample.theme.warm,
-    "--surface": sample.theme.surface,
-    "--muted": sample.theme.muted,
-    "--border": sample.theme.border,
-    "--score": `${readiness}%`,
   } as CSSProperties;
 
-  function toggleItem(item: string) {
-    setCheckedItems((current) => {
-      const next = new Set(current);
-      if (next.has(item)) {
-        next.delete(item);
-      } else {
-        next.add(item);
-      }
-      return next;
-    });
+  const filteredItems = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    return [...items]
+      .filter((item) => statusFilter === "all" || item.status === statusFilter)
+      .filter((item) => !normalized || [item.title, item.category, item.owner, item.notes].join(" ").toLowerCase().includes(normalized))
+      .sort((left, right) => {
+        if (sortMode === "effort") return left.effort - right.effort;
+        if (sortMode === "friction") return left.friction - right.friction;
+        return scoreItem(right) - scoreItem(left);
+      });
+  }, [items, query, sortMode, statusFilter]);
+
+  const selected = items.find((item) => item.id === selectedId) ?? items[0];
+  const readyCount = items.filter((item) => item.status === "ready" || item.status === "done").length;
+  const blockedCount = items.filter((item) => item.status === "blocked").length;
+  const averageScore = Math.round(items.reduce((sum, item) => sum + scoreItem(item), 0) / Math.max(1, items.length));
+  const checklistScore = checks.reduce((sum, check) => sum + (check.passed ? check.weight : 0), 0);
+  const readiness = Math.min(99, Math.max(20, averageScore + checklistScore - blockedCount * 7));
+  const topItem = filteredItems[0] ?? selected;
+
+  function updateItem(id: string, patch: Partial<WorkItem>) {
+    setItems((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  }
+
+  function advanceItem(id: string) {
+    const item = items.find((candidate) => candidate.id === id);
+    if (!item) return;
+    const nextIndex = Math.min(statusOrder.length - 1, statusOrder.indexOf(item.status) + 1);
+    updateItem(id, { status: statusOrder[nextIndex] });
+  }
+
+  function addWorkItem() {
+    const nextNumber = items.length + 1;
+    const item: WorkItem = {
+      id: `new-${Date.now()}`,
+      title: `${sample.subtitle} item ${nextNumber}`,
+      category: "Intake",
+      owner: "Fox & Hen",
+      status: "backlog",
+      priority: 3,
+      effort: 2,
+      friction: 2,
+      value: 4,
+      due: "24h",
+      notes: "New sample item added from the live demo.",
+    };
+    setItems((current) => [item, ...current]);
+    setSelectedId(item.id);
+  }
+
+  function toggleCheck(id: string) {
+    setChecks((current) => current.map((check) => (check.id === id ? { ...check, passed: !check.passed } : check)));
+  }
+
+  function runSprintSimulation() {
+    const ranked = [...items].sort((left, right) => scoreItem(right) - scoreItem(left)).slice(0, 3).map((item) => item.id);
+    setItems((current) =>
+      current.map((item) =>
+        ranked.includes(item.id)
+          ? { ...item, status: item.status === "blocked" ? "ready" : "active", friction: Math.max(1, item.friction - 1) }
+          : item,
+      ),
+    );
+    setChecks((current) => current.map((check) => ({ ...check, passed: check.id === "friction" ? true : check.passed })));
+  }
+
+  function generateReport() {
+    const lines = [
+      `${sample.title} handoff report`,
+      `Readiness: ${readiness}%`,
+      `Top item: ${topItem.title} (${statusLabels[topItem.status]})`,
+      "",
+      "Prioritized work:",
+      ...filteredItems.slice(0, 5).map((item, index) => `${index + 1}. ${item.title} — score ${scoreItem(item)}, owner ${item.owner}, due ${item.due}`),
+      "",
+      "Open checks:",
+      ...checks.filter((check) => !check.passed).map((check) => `- ${check.label}`),
+    ];
+    setReport(lines.join("\n"));
+  }
+
+  function downloadJson() {
+    const payload = JSON.stringify({ generatedAt: new Date().toISOString(), readiness, items, checks }, null, 2);
+    const url = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${sample.repoName}-handoff.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
     <div className="app-shell" style={appStyle}>
       <header className="site-header">
-        <a className="brand" href="https://foxandhenllc.com" aria-label="Fox and Hen website">
+        <a className="brand" href="https://foxandhenllc.com">
           <span className="brand-mark">F&amp;H</span>
           <span>
             <strong>Fox &amp; Hen</strong>
-            <small>{sample.subtitle}</small>
+            <small>{sample.title}</small>
           </span>
         </a>
-        <nav aria-label="Demo navigation">
-          <a href="#workbench">Workbench</a>
-          <a href="#handoff">Handoff</a>
+        <nav>
+          <a href="#board">Board</a>
+          <a href="#inspector">Inspector</a>
           <a className="nav-button" href={sample.repositoryUrl}>Repository</a>
         </nav>
       </header>
 
       <main>
         <section className="hero">
-          <div className="hero-copy">
+          <div>
             <p className="service-line">{sample.serviceLine}</p>
-            <h1>{sample.heroTitle}</h1>
-            <p className="lede">{sample.heroCopy}</p>
-            <div className="hero-actions" aria-label="Demo actions">
-              <button type="button" className="primary-action" onClick={() => setActiveStage(2)}>
-                {sample.primaryAction}
-              </button>
-              <button type="button" className="secondary-action" onClick={() => setActiveStage(4)}>
-                {sample.secondaryAction}
-              </button>
-            </div>
-            <div className="metric-strip" aria-label="Demo metrics">
-              {sample.metrics.map((metric) => (
-                <article key={metric.label}>
-                  <span>{metric.label}</span>
-                  <strong>{metric.value}</strong>
-                  <small>{metric.note}</small>
-                </article>
-              ))}
+            <h1>{sample.description}</h1>
+            <p className="lede">This is a working public sample: edit records, change scoring inputs, run a sprint simulation, generate a handoff report, and export the current state.</p>
+            <div className="hero-actions">
+              <button type="button" className="primary-action" onClick={runSprintSimulation}>Run 24h sprint simulation</button>
+              <button type="button" className="secondary-action" onClick={generateReport}>Generate handoff report</button>
             </div>
           </div>
-
-          <HeroConsole
-            currentStage={currentStage}
-            activeWork={activeWork}
-            readiness={readiness}
-            setActiveStage={setActiveStage}
-          />
+          <aside className="score-console">
+            <div className="console-topline">
+              <span>Live readiness</span>
+              <strong>{readiness}%</strong>
+            </div>
+            <div className="meter"><span style={{ width: `${readiness}%` }} /></div>
+            <div className="metric-grid">
+              <article><span>Ready/done</span><strong>{readyCount}</strong><small>items packaged</small></article>
+              <article><span>Blocked</span><strong>{blockedCount}</strong><small>needs decision</small></article>
+              <article><span>Top score</span><strong>{scoreItem(topItem)}</strong><small>{topItem.title}</small></article>
+            </div>
+          </aside>
         </section>
 
-        <section id="workbench" className="workbench">
+        <section id="board" className="board-layout">
           <div className="section-heading">
-            <p>Live sample workflow</p>
-            <h2>Click through the operating model behind the demo.</h2>
+            <p>Working tool</p>
+            <h2>Prioritize, edit, advance, and package the sample work.</h2>
           </div>
-          <div className="workbench-grid">
-            <div className="stage-list" aria-label="Workflow stages">
-              {sample.stages.map((stage) => (
-                <button
-                  type="button"
-                  key={stage.label}
-                  className={stage.index === activeStage ? "stage-card is-active" : "stage-card"}
-                  onClick={() => setActiveStage(stage.index)}
-                >
-                  <span className="stage-number">{stage.index}</span>
-                  <span>
-                    <strong>{stage.label}</strong>
-                    <small>{stage.detail}</small>
-                  </span>
-                  <em className={statusClass[stage.status]}>{statusLabels[stage.status]}</em>
+
+          <div className="controls">
+            <input aria-label="Search work items" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search title, owner, category..." />
+            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as ItemStatus | "all")}>
+              <option value="all">All statuses</option>
+              {statusOrder.map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
+            </select>
+            <select value={sortMode} onChange={(event) => setSortMode(event.target.value as "score" | "effort" | "friction")}>
+              <option value="score">Sort by payout score</option>
+              <option value="effort">Sort by fastest effort</option>
+              <option value="friction">Sort by lowest friction</option>
+            </select>
+            <button type="button" onClick={addWorkItem}>Add sample item</button>
+          </div>
+
+          <div className="work-grid">
+            <div className="item-list">
+              {filteredItems.map((item) => (
+                <button key={item.id} type="button" className={item.id === selected.id ? "item-card selected" : "item-card"} onClick={() => setSelectedId(item.id)}>
+                  <span className={`status ${item.status}`}>{statusLabels[item.status]}</span>
+                  <strong>{item.title}</strong>
+                  <small>{item.category} · {item.owner} · due {item.due}</small>
+                  <em>Score {scoreItem(item)}</em>
                 </button>
               ))}
             </div>
 
-            <div className="detail-panel">
-              <div className="panel-topline">
-                <span>{currentStage.owner}</span>
-                <em className={statusClass[currentStage.status]}>{statusLabels[currentStage.status]}</em>
+            <aside id="inspector" className="inspector">
+              <div className="inspector-header">
+                <span className={`status ${selected.status}`}>{statusLabels[selected.status]}</span>
+                <button type="button" onClick={() => advanceItem(selected.id)}>Advance status</button>
               </div>
-              <h3>{currentStage.label}</h3>
-              <p>{currentStage.detail}</p>
+              <h3>{selected.title}</h3>
+              <label>Owner<input value={selected.owner} onChange={(event) => updateItem(selected.id, { owner: event.target.value })} /></label>
+              <label>Notes<textarea value={selected.notes} onChange={(event) => updateItem(selected.id, { notes: event.target.value })} /></label>
+              <div className="slider-grid">
+                {(["priority", "value", "effort", "friction"] as const).map((field) => (
+                  <label key={field}>{field}
+                    <input type="range" min="1" max="5" value={selected[field]} onChange={(event) => updateItem(selected.id, { [field]: Number(event.target.value) } as Partial<WorkItem>)} />
+                    <span>{selected[field]}</span>
+                  </label>
+                ))}
+              </div>
+            </aside>
+          </div>
+        </section>
 
-              <div className="control-panel" aria-label="Scenario controls">
-                <label>
-                  Sprint intensity
-                  <input
-                    type="range"
-                    min="1"
-                    max="4"
-                    value={deliverySpeed}
-                    onChange={(event) => setDeliverySpeed(Number(event.target.value))}
-                  />
-                </label>
-                <div className="toggles">
-                  {[
-                    ["scope", "Scope locked"],
-                    ["qa", "QA pass"],
-                    ["handoff", "Handoff note"],
-                    ["reuse", "Reuse path"],
-                  ].map(([key, label]) => (
-                    <button
-                      type="button"
-                      key={key}
-                      className={checkedItems.has(key) ? "toggle is-on" : "toggle"}
-                      onClick={() => toggleItem(key)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="readiness-card">
-                <div className="score-ring" aria-label={`Readiness score ${readiness} percent`}>
-                  <strong>{readiness}</strong>
-                  <span>ready</span>
-                </div>
-                <div>
-                  <h4>{activeWork.title}</h4>
-                  <p>{activeWork.detail}</p>
-                  <span className={statusClass[activeWork.status]}>{statusLabels[activeWork.status]}</span>
-                </div>
-              </div>
+        <section className="package-grid">
+          <div className="checklist-card">
+            <p className="service-line">QA gates</p>
+            <h2>Toggle the checks that make this ready to hand off.</h2>
+            <div className="check-list">
+              {checks.map((check) => (
+                <button key={check.id} type="button" className={check.passed ? "check passed" : "check"} onClick={() => toggleCheck(check.id)}>
+                  <span>{check.passed ? "✓" : "○"}</span>
+                  {check.label}
+                  <em>{check.weight} pts</em>
+                </button>
+              ))}
             </div>
           </div>
-        </section>
 
-        <section id="handoff" className="handoff">
-          <div className="section-heading">
-            <p>Handoff package</p>
-            <h2>Every sample ends with a buyer-readable delivery bundle.</h2>
-          </div>
-          <div className="handoff-grid">
-            {sample.deliverables.map((deliverable, index) => (
-              <article key={deliverable.title} className="deliverable-card">
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <h3>{deliverable.title}</h3>
-                <p>{deliverable.detail}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="timeline-section">
-          <div className="timeline">
-            {sample.timeline.map((item) => (
-              <article key={item.time}>
-                <strong>{item.time}</strong>
-                <p>{item.detail}</p>
-              </article>
-            ))}
-          </div>
-          <div className="proof-card">
-            <h2>What this demonstrates</h2>
-            <ul>
-              {sample.proof.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-            <a href={sample.liveDemoUrl}>Live demo URL</a>
+          <div className="report-card">
+            <p className="service-line">Export</p>
+            <h2>Generate a buyer-readable package.</h2>
+            <div className="hero-actions">
+              <button type="button" className="primary-action" onClick={generateReport}>Refresh report</button>
+              <button type="button" className="secondary-action" onClick={downloadJson}>Download JSON</button>
+            </div>
+            <textarea className="report-output" value={report || "Click Generate handoff report to create a live summary from the current board state."} onChange={(event) => setReport(event.target.value)} />
           </div>
         </section>
       </main>
     </div>
-  );
-}
-
-function HeroConsole({
-  currentStage,
-  activeWork,
-  readiness,
-  setActiveStage,
-}: {
-  currentStage: DemoStage;
-  activeWork: WorkItem;
-  readiness: number;
-  setActiveStage: (stage: number) => void;
-}) {
-  return (
-    <aside className="hero-console" aria-label="Interactive demo console">
-      <div className="console-bar">
-        <span />
-        <span />
-        <span />
-        <strong>{sample.title}</strong>
-      </div>
-      <div className="console-body">
-        <div className="console-rail">
-          {sample.stages.map((stage) => (
-            <button
-              key={stage.label}
-              type="button"
-              className={stage.label === currentStage.label ? "rail-item is-active" : "rail-item"}
-              onClick={() => setActiveStage(stage.index)}
-            >
-              <span>{stage.index}</span>
-              {stage.label}
-            </button>
-          ))}
-        </div>
-        <div className="console-main">
-          <div className="console-status">
-            <span>Local sample state</span>
-            <em className={statusClass[currentStage.status]}>{statusLabels[currentStage.status]}</em>
-          </div>
-          <h2>{currentStage.label}</h2>
-          <p>{currentStage.detail}</p>
-          <div className="mini-grid">
-            <div className="score-ring compact">
-              <strong>{readiness}</strong>
-              <span>score</span>
-            </div>
-            <article>
-              <span>Focus item</span>
-              <strong>{activeWork.title}</strong>
-              <small>{activeWork.detail}</small>
-            </article>
-          </div>
-          <div className="queue-list">
-            {sample.workItems.map((item) => (
-              <div key={item.title} className="queue-row">
-                <span className={statusClass[item.status]}>{statusLabels[item.status]}</span>
-                <strong>{item.title}</strong>
-                <small>{item.detail}</small>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </aside>
   );
 }
 
