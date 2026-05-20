@@ -32,7 +32,7 @@ The app is intentionally static so prospects can inspect the flow, fork it, and 
 
 1. Replace the fictional work items in `src/data.ts` with your own public-safe sample scenario.
 2. Update colors, service copy, repository URL, and live demo URL in the same file.
-3. Keep screenshots, exported JSON, and README examples free of secrets, real customer data, and private contacts.
+3. Keep screenshots, exported JSON, and README examples free of credentials, real customer data, and personal contacts.
 4. Run `npm run build --silent` before publishing.
 
 See `docs/forking-guide.md` for a checklist and starter client brief.
