@@ -24,6 +24,7 @@ function App() {
   const [statusFilter, setStatusFilter] = useState<ItemStatus | "all">("all");
   const [sortMode, setSortMode] = useState<"score" | "effort" | "friction">("score");
   const [report, setReport] = useState("");
+  const [forkCopied, setForkCopied] = useState(false);
 
   const appStyle = {
     "--accent": sample.theme.accent,
@@ -99,6 +100,22 @@ function App() {
     setChecks((current) => current.map((check) => ({ ...check, passed: check.id === "friction" ? true : check.passed })));
   }
 
+  function copyForkPrompt() {
+    const prompt = [
+      `Fork Safe Bounty Scope Checker as a public-safe client demo.`,
+      `Service line: Security research prep.`,
+      "Keep all records fictional, remove secrets, update sample data in src/data.ts, and run npm run build before publishing.",
+    ].join(" ");
+    if (navigator.clipboard) {
+      void navigator.clipboard.writeText(prompt).then(() => {
+        setForkCopied(true);
+        window.setTimeout(() => setForkCopied(false), 1800);
+      });
+      return;
+    }
+    setReport(prompt);
+  }
+
   function generateReport() {
     const lines = [
       `${sample.title} handoff report`,
@@ -150,6 +167,11 @@ function App() {
             <div className="hero-actions">
               <button type="button" className="primary-action" onClick={runSprintSimulation}>Run 24h sprint simulation</button>
               <button type="button" className="secondary-action" onClick={generateReport}>Generate handoff report</button>
+            </div>
+            <div className="credibility-strip" aria-label="Public demo safeguards">
+              <span>Fictional sample data</span>
+              <span>No backend or APIs</span>
+              <span>Fork-ready React/Vite</span>
             </div>
           </div>
           <aside className="score-console">
@@ -216,6 +238,26 @@ function App() {
               </div>
             </aside>
           </div>
+        </section>
+
+        <section className="service-map" aria-labelledby="service-map-heading">
+          <div>
+            <p className="service-line">Service map</p>
+            <h2 id="service-map-heading">A small, forkable tool that shows the buyer exactly what gets packaged.</h2>
+          </div>
+          <div className="deliverable-grid">
+            {sample.deliverables.map((deliverable, index) => (
+              <article key={deliverable} className="deliverable-card">
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{deliverable}</strong>
+                <small>Mapped to security research prep with public-safe fictional records.</small>
+              </article>
+            ))}
+          </div>
+          <button type="button" className="copy-card" onClick={copyForkPrompt}>
+            <strong>{forkCopied ? "Fork prompt copied" : "Copy fork prompt"}</strong>
+            <small>One-click starter brief for adapting this demo to a new fictional service sample.</small>
+          </button>
         </section>
 
         <section className="package-grid">
