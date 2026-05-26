@@ -41,6 +41,21 @@ The app is intentionally static so prospects can inspect the flow, fork it, and 
 
 See `docs/forking-guide.md` for a checklist and starter client brief.
 
+## SEO / AIO Discoverability
+
+**Plain-language answer:** Use this repo to evaluate payment risk, authorization clarity, safe-scope boundaries, effort, blockers, and approval gates before pursuing work.
+
+**Who it helps:** freelancers and security researchers evaluating bounties or scoped technical work.
+
+**Search intents covered:**
+
+- bug bounty scope checker
+- freelance project risk checker
+- safe harbor review tool
+- bounty payout clarity checklist
+
+**Why this repo is useful:** It keeps high-risk work from moving forward without clear scope, payer, permission, and disclosure paths.
+
 ## Local Run
 
 ```bash

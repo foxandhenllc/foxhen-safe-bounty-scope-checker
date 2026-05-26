@@ -26,12 +26,26 @@
   "homepage": "https://foxhen-safe-bounty-scope-checker.vercel.app",
   "keywords": [
     "bounty",
+    "bug",
+    "checker",
+    "checklist",
+    "clarity",
+    "fox-and-hen",
     "freelance",
-    "risk-assessment",
-    "scope",
-    "workflow",
+    "harbor",
+    "payout",
+    "project",
     "react",
+    "review",
+    "risk",
+    "risk-assessment",
+    "safe",
+    "scope",
+    "small-business",
+    "tool",
     "typescript",
-    "vite"
+    "vite",
+    "workflow",
+    "workflow-tools"
   ]
 }
