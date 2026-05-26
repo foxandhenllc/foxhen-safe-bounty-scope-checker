@@ -1,6 +1,6 @@
 # Safe Bounty Scope Checker
 
-Public Fox & Hen working sample for **Security research prep**.
+Freelance and bounty scope checker for payment risk, authorization clarity, effort, blockers, and approval gates.
 
 ![Demo screenshot](docs/demo-screenshot.png)
 
@@ -8,6 +8,10 @@ Public Fox & Hen working sample for **Security research prep**.
 
 - Demo: [https://foxhen-safe-bounty-scope-checker.vercel.app](https://foxhen-safe-bounty-scope-checker.vercel.app)
 - Repository: [https://github.com/foxandhenllc/foxhen-safe-bounty-scope-checker](https://github.com/foxandhenllc/foxhen-safe-bounty-scope-checker)
+
+## Purpose
+
+Freelance and bounty scope checker for payment risk, authorization clarity, effort, blockers, and approval gates.
 
 ## Fully Working Behaviors
 
@@ -19,7 +23,7 @@ Public Fox & Hen working sample for **Security research prep**.
 
 ## Service Mapping
 
-This demo packages a lightweight security research prep workflow around:
+This repo packages a focused, public-safe workflow around:
 
 - Ranked board
 - Editable item inspector
