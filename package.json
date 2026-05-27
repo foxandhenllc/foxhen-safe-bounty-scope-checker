@@ -23,7 +23,7 @@
     "node": ">=20"
   },
   "description": "Freelance and bounty scope checker for payment risk, authorization clarity, effort, blockers, and approval gates.",
-  "homepage": "https://foxhen-safe-bounty-scope-checker.vercel.app",
+  "homepage": "https://freetoolsforpeople.com/safe-bounty-scope-checker",
   "keywords": [
     "bounty",
     "bug",

@@ -40,7 +40,7 @@ export const sample: {
   "serviceLine": "Security research prep",
   "description": "Plan security research by mapping allowed assets, no-touch actions, payout clarity, and approval gates.",
   "repositoryUrl": "https://github.com/foxandhenllc/foxhen-safe-bounty-scope-checker",
-  "liveDemoUrl": "https://foxhen-safe-bounty-scope-checker.vercel.app",
+  "liveDemoUrl": "https://freetoolsforpeople.com/safe-bounty-scope-checker",
   "theme": {
     "accent": "#253f6e",
     "accent2": "#ffbf69",

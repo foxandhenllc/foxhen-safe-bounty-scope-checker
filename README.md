@@ -6,7 +6,7 @@ Freelance and bounty scope checker for payment risk, authorization clarity, effo
 
 ## Live Demo
 
-- Demo: [https://foxhen-safe-bounty-scope-checker.vercel.app](https://foxhen-safe-bounty-scope-checker.vercel.app)
+- Demo: [https://freetoolsforpeople.com/safe-bounty-scope-checker](https://freetoolsforpeople.com/safe-bounty-scope-checker)
 - Repository: [https://github.com/foxandhenllc/foxhen-safe-bounty-scope-checker](https://github.com/foxandhenllc/foxhen-safe-bounty-scope-checker)
 
 ## Purpose
