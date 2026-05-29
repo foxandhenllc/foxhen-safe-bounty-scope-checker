@@ -1,0 +1,31 @@
+name: Workflow or feature idea
+description: Suggest a public-safe improvement for Safe Bounty Scope Checker.
+title: "Add: "
+labels: ["enhancement", "good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep requests public-safe. Do not paste private workspace data, customer records, credentials, or private URLs.
+  - type: input
+    id: idea
+    attributes:
+      label: Idea
+      description: What should this project add or improve?
+      placeholder: "Example: add a reusable export template"
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Public use case
+      description: Who benefits, and what workflow does this help?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How should a contributor know the change is complete?
+    validations:
+      required: true

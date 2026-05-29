@@ -1,0 +1,32 @@
+name: Quality improvement
+description: Suggest a test, accessibility, documentation, or build improvement for Safe Bounty Scope Checker.
+title: "Improve: "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Browser UI
+        - Documentation
+        - Tests
+        - Accessibility
+        - Build or CI
+        - Public-safe data policy
+    validations:
+      required: true
+  - type: textarea
+    id: improvement
+    attributes:
+      label: Improvement
+      description: What should change, and why does it help users or maintainers?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How should a contributor know this is done?
+    validations:
+      required: true
